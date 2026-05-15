@@ -1,0 +1,3412 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/static/ResearchAI_NoLogo.png" />
+    <title>ResearchAI</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #0a0a0c;
+        --surface: #111114;
+        --surface2: #18181c;
+        --surface3: #222228;
+        --border: rgba(255, 255, 255, 0.06);
+        --border2: rgba(255, 255, 255, 0.11);
+        --text: #f0ede8;
+        --text2: #a8a5a0;
+        --text3: #5a5856;
+        --accent: #c8a96e;
+        --accent2: #e8c98a;
+        --green: #4db88a;
+        --red: #d06060;
+        --blue: #5a8fc0;
+        --serif: "Cormorant Garamond", Georgia, serif;
+        --sans: "DM Sans", system-ui, sans-serif;
+        --r: 10px;
+        --rl: 14px;
+      }
+      :root.light {
+        --bg: #f4f3ef;
+        --surface: #fff;
+        --surface2: #efecea;
+        --surface3: #e6e3df;
+        --border: rgba(0, 0, 0, 0.07);
+        --border2: rgba(0, 0, 0, 0.14);
+        --text: #1a1917;
+        --text2: #4a4845;
+        --text3: #9a9794;
+        --accent: #c8a96e;
+        --accent2: #b88c50;
+        --green: #1e7a58;
+        --red: #b04040;
+        --blue: #2a5f8f;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.7;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* ── Header ── */
+      header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.7rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        flex-shrink: 0;
+        position: relative;
+      }
+      .header-center {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .back-btn {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--text3);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-decoration: none;
+        padding: 5px 10px;
+        border-radius: var(--r);
+        border: 1px solid transparent;
+        transition: all 0.2s;
+      }
+      .back-btn:hover {
+        color: var(--text2);
+        border-color: var(--border2);
+        background: var(--surface2);
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .logo-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        overflow: hidden;
+      }
+      .logo-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+      }
+      .logo-name {
+        font-family: var(--serif);
+        font-size: 1.65rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .logo-name em {
+        color: var(--blue);
+        font-style: italic;
+      }
+      .status-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        margin-left: auto;
+      }
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--text3);
+        transition: background 0.3s;
+      }
+      .status-dot.ok {
+        background: var(--green);
+      }
+      .status-dot.err {
+        background: var(--red);
+      }
+      .status-label {
+        color: var(--text3);
+      }
+
+      /* ── App layout ── */
+      .app {
+        display: grid;
+        grid-template-columns: 300px 1fr 260px;
+        flex: 1;
+        overflow: hidden;
+        transition: grid-template-columns 0.2s;
+      }
+      /* notes panel floats, no grid needed */
+
+      /* ── Sidebar ── */
+      .sidebar {
+        border-right: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .sb-section {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .sb-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text3);
+        font-weight: 600;
+        margin-bottom: 0.7rem;
+      }
+
+      /* Query input */
+      .query-wrap {
+        position: relative;
+      }
+      .query-input {
+        width: 100%;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: var(--r);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 13.5px;
+        padding: 10px 12px;
+        outline: none;
+        resize: none;
+        min-height: 80px;
+        line-height: 1.6;
+        transition: border-color 0.2s;
+      }
+      .query-input:focus {
+        border-color: rgba(90, 143, 192, 0.4);
+      }
+      .query-input::placeholder {
+        color: var(--text3);
+      }
+
+      /* Docs only toggle */
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 0.6rem;
+      }
+      .toggle-label {
+        font-size: 12px;
+        color: var(--text3);
+      }
+      .toggle {
+        position: relative;
+        width: 34px;
+        height: 18px;
+        cursor: pointer;
+      }
+      .toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle-track {
+        position: absolute;
+        inset: 0;
+        background: var(--surface3);
+        border-radius: 9px;
+        border: 1px solid var(--border2);
+        transition: background 0.2s;
+      }
+      .toggle input:checked + .toggle-track {
+        background: rgba(90, 143, 192, 0.4);
+        border-color: rgba(90, 143, 192, 0.5);
+      }
+      .toggle-thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 12px;
+        height: 12px;
+        background: var(--text3);
+        border-radius: 50%;
+        transition:
+          transform 0.2s,
+          background 0.2s;
+      }
+      .toggle input:checked ~ .toggle-thumb {
+        transform: translateX(16px);
+        background: var(--blue);
+      }
+
+      /* Drop zone */
+      .drop-zone {
+        border: 1.5px dashed var(--border2);
+        border-radius: var(--r);
+        padding: 0.9rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: var(--surface2);
+        position: relative;
+      }
+      .drop-zone:hover,
+      .drop-zone.over {
+        border-color: var(--blue);
+        background: rgba(90, 143, 192, 0.05);
+      }
+      .drop-zone input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+      }
+      .drop-label {
+        font-size: 12.5px;
+        color: var(--text2);
+      }
+      .drop-label strong {
+        color: var(--blue);
+        font-weight: 600;
+      }
+      .drop-types {
+        font-size: 10.5px;
+        color: var(--text3);
+        margin-top: 3px;
+      }
+
+      /* Doc list */
+      .doc-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .doc-list::-webkit-scrollbar {
+        width: 3px;
+      }
+      .doc-list::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 2px;
+      }
+      .r-doc-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: var(--r);
+        border: 1px solid transparent;
+        transition: all 0.15s;
+      }
+      .r-doc-item:hover {
+        background: var(--surface2);
+      }
+      .r-doc-badge {
+        width: 26px;
+        height: 26px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9.5px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .b-pdf {
+        background: rgba(208, 96, 96, 0.15);
+        color: var(--red);
+      }
+      .b-docx {
+        background: rgba(90, 143, 192, 0.15);
+        color: var(--blue);
+      }
+      .b-pptx,
+      .b-ppt {
+        background: rgba(200, 169, 110, 0.15);
+        color: var(--accent);
+      }
+      .b-txt,
+      .b-md {
+        background: rgba(77, 184, 138, 0.15);
+        color: var(--green);
+      }
+      .r-doc-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .r-doc-name {
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .r-doc-meta {
+        font-size: 10.5px;
+        color: var(--text3);
+        margin-top: 1px;
+      }
+      .r-doc-del {
+        opacity: 0;
+        background: none;
+        border: none;
+        color: var(--text3);
+        cursor: pointer;
+        font-size: 12px;
+        padding: 2px 5px;
+        border-radius: 4px;
+        transition: all 0.15s;
+      }
+      .r-doc-item:hover .r-doc-del {
+        opacity: 1;
+      }
+      .r-doc-del:hover {
+        color: var(--red);
+        background: rgba(208, 96, 96, 0.1);
+      }
+
+      .sb-delete-bar {
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid var(--border);
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        background: rgba(208, 96, 96, 0.05);
+        flex-shrink: 0;
+      }
+      .sb-delete-bar.active {
+        display: flex;
+      }
+      .sb-delete-info {
+        font-size: 12px;
+        color: var(--text3);
+      }
+      .sb-delete-info span {
+        color: var(--red);
+        font-weight: 600;
+      }
+      .r-doc-item.select-mode .r-doc-del {
+        display: none !important;
+      }
+      .r-doc-check {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 1.5px solid var(--border2);
+        background: var(--surface2);
+        flex-shrink: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .r-doc-item.select-mode .r-doc-check {
+        display: flex;
+      }
+      .r-doc-item.r-selected .r-doc-check {
+        background: var(--red);
+        border-color: var(--red);
+        color: #fff;
+      }
+      .r-doc-item.r-selected {
+        background: rgba(208, 96, 96, 0.06);
+        border-color: rgba(208, 96, 96, 0.2) !important;
+      }
+
+      .ov-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 1.25rem;
+      }
+      .ov-search-input {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        border-radius: var(--r);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 14px;
+        padding: 9px 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .ov-search-input:focus {
+        border-color: rgba(90, 143, 192, 0.45);
+      }
+      .ov-search-input::placeholder {
+        color: var(--text3);
+      }
+      .ov-search-count {
+        font-size: 12px;
+        color: var(--text3);
+        white-space: nowrap;
+        min-width: 70px;
+        text-align: right;
+      }
+      .ov-search-nav button {
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 6px;
+        color: var(--text2);
+        cursor: pointer;
+        font-size: 13px;
+        padding: 5px 9px;
+        transition: all 0.15s;
+        margin-left: 3px;
+      }
+      .ov-search-nav button:hover {
+        background: var(--surface3);
+        color: var(--text);
+      }
+      .ov-search-nav button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      .r-highlight {
+        background: rgba(90, 143, 192, 0.3);
+        border-radius: 2px;
+      }
+      .r-highlight.active {
+        background: rgba(90, 143, 192, 0.75);
+        color: #fff;
+      }
+
+      /* Right sessions panel */
+      .sessions-panel {
+        border-left: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .sessions-head {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .sessions-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text3);
+        font-weight: 600;
+      }
+      .sessions-clear {
+        font-size: 11px;
+        color: var(--text3);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 4px;
+        transition: all 0.15s;
+      }
+      .sessions-clear:hover {
+        color: var(--red);
+        background: rgba(208, 96, 96, 0.1);
+      }
+      .sessions-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .sessions-list::-webkit-scrollbar {
+        width: 3px;
+      }
+      .sessions-list::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 2px;
+      }
+
+      .session-item {
+        position: relative;
+      }
+      .session-item:hover .session-del {
+        opacity: 1;
+      }
+      .session-del {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 11px;
+        color: var(--text3);
+        opacity: 0;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .session-del:hover {
+        color: var(--red);
+        background: rgba(208, 96, 96, 0.12);
+        opacity: 1;
+      }
+      .session-item {
+        padding: 10px 12px;
+        border-radius: var(--r);
+        border: 1px solid var(--border);
+        background: var(--surface2);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .session-item:hover {
+        border-color: var(--border2);
+        background: var(--surface3);
+      }
+      .session-item.active {
+        border-color: rgba(90, 143, 192, 0.4);
+        background: rgba(90, 143, 192, 0.07);
+      }
+      .session-q {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1.4;
+        margin-bottom: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .session-meta {
+        font-size: 11px;
+        color: var(--text3);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .session-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--green);
+        flex-shrink: 0;
+      }
+      .session-empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--text3);
+        font-size: 12px;
+        line-height: 1.7;
+      }
+
+      /* Doc selection checkboxes */
+      .r-doc-sel {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 1.5px solid var(--border2);
+        background: var(--surface2);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .r-doc-sel.checked {
+        background: var(--blue);
+        border-color: var(--blue);
+        color: #fff;
+      }
+
+      /* Folders */
+      .folder-section {
+        margin-bottom: 2px;
+      }
+      .folder-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: var(--r);
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s;
+      }
+      .folder-header:hover {
+        background: var(--surface2);
+      }
+      .folder-icon {
+        font-size: 12px;
+        transition: transform 0.2s;
+        flex-shrink: 0;
+      }
+      .folder-header.open .folder-icon {
+        transform: rotate(90deg);
+      }
+      .folder-name-lbl {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text2);
+        flex: 1;
+      }
+      .folder-count-lbl {
+        font-size: 10px;
+        color: var(--text3);
+      }
+      .folder-acts {
+        display: none;
+        gap: 3px;
+      }
+      .folder-header:hover .folder-acts {
+        display: flex;
+      }
+      .folder-act-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 11px;
+        color: var(--text3);
+        padding: 2px 5px;
+        border-radius: 3px;
+        transition: all 0.15s;
+      }
+      .folder-act-btn:hover {
+        color: var(--text);
+        background: var(--surface3);
+      }
+      .folder-docs-wrap {
+        padding-left: 8px;
+        display: none;
+      }
+      .folder-docs-wrap.open {
+        display: block;
+      }
+      .r-folder-drop {
+        border: 1.5px dashed var(--border2);
+        border-radius: var(--r);
+        padding: 5px 10px;
+        margin: 3px 0;
+        font-size: 11px;
+        color: var(--text3);
+        text-align: center;
+        transition: all 0.15s;
+      }
+      .r-folder-drop.drag-over {
+        border-color: var(--blue);
+        background: rgba(90, 143, 192, 0.06);
+        color: var(--blue);
+      }
+      .folder-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .folder-modal {
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        border-radius: var(--rl);
+        padding: 1.5rem;
+        width: 340px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      }
+      .folder-modal h3 {
+        font-family: var(--serif);
+        font-size: 1.1rem;
+        font-weight: 400;
+        margin-bottom: 1rem;
+      }
+      .folder-modal input {
+        width: 100%;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: var(--r);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 14px;
+        padding: 9px 12px;
+        outline: none;
+        margin-bottom: 0.75rem;
+        box-sizing: border-box;
+      }
+      .folder-modal input:focus {
+        border-color: rgba(90, 143, 192, 0.4);
+      }
+      .folder-modal input.error {
+        border-color: rgba(208, 96, 96, 0.5);
+      }
+      .folder-modal-btns {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      /* ── Notes panel (ResearchAI) ── */
+      .notes-panel {
+        position: fixed;
+        top: 115px;
+        right: 295px;
+        width: 230px;
+        max-height: calc(100vh - 135px);
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        border-radius: var(--rl);
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        z-index: 200;
+        overflow: hidden;
+      }
+      .notes-head {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .notes-head-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text3);
+        font-weight: 600;
+      }
+      .notes-head-btns {
+        display: flex;
+        gap: 5px;
+      }
+      .notes-add-btn {
+        background: var(--accent);
+        border: none;
+        border-radius: 5px;
+        color: #1a1710;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 3px 9px;
+        transition: all 0.15s;
+      }
+      .notes-add-btn:hover {
+        background: var(--accent2);
+      }
+      .notes-clear-btn {
+        background: none;
+        border: 1px solid var(--border2);
+        border-radius: 5px;
+        color: var(--text3);
+        font-size: 11px;
+        cursor: pointer;
+        padding: 3px 7px;
+        transition: all 0.15s;
+      }
+      .notes-clear-btn:hover {
+        border-color: rgba(208, 96, 96, 0.4);
+        color: var(--red);
+      }
+      .notes-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .notes-list::-webkit-scrollbar {
+        width: 3px;
+      }
+      .notes-list::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 2px;
+      }
+      .note-card {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: 9px 10px;
+        cursor: pointer;
+        transition: all 0.15s;
+        position: relative;
+        flex-shrink: 0;
+      }
+      .note-card:hover {
+        border-color: var(--border2);
+        background: var(--surface3);
+      }
+      .note-card-text {
+        font-size: 12px;
+        color: var(--text2);
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+      }
+      .note-card-meta {
+        font-size: 10px;
+        color: var(--text3);
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .note-del-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text3);
+        font-size: 11px;
+        opacity: 0;
+        transition: opacity 0.15s;
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
+      .note-card:hover .note-del-btn {
+        opacity: 1;
+      }
+      .note-del-btn:hover {
+        color: var(--red);
+      }
+      .notes-empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--text3);
+        font-size: 12px;
+        line-height: 1.7;
+      }
+      .note-compose {
+        padding: 0.5rem;
+        border-top: 1px solid var(--border);
+        flex-shrink: 0;
+        display: none;
+      }
+      .note-compose.open {
+        display: block;
+      }
+      .note-compose textarea {
+        width: 100%;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: var(--r);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 12px;
+        padding: 8px 10px;
+        resize: none;
+        outline: none;
+        min-height: 70px;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+      }
+      .note-compose textarea:focus {
+        border-color: rgba(90, 143, 192, 0.4);
+      }
+      .note-compose-btns {
+        display: flex;
+        gap: 6px;
+        margin-top: 5px;
+        justify-content: flex-end;
+      }
+      .note-viewer {
+        position: absolute;
+        inset: 0;
+        background: var(--surface2);
+        border-radius: var(--rl);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        z-index: 20;
+        animation: slideInNotes 0.18s ease;
+      }
+      @keyframes slideInNotes {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .note-viewer-text {
+        flex: 1;
+        overflow-y: auto;
+        font-size: 13px;
+        color: var(--text2);
+        line-height: 1.75;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .note-viewer-meta {
+        font-size: 11px;
+        color: var(--text3);
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .empty-docs {
+        text-align: center;
+        padding: 1.5rem 0.75rem;
+        color: var(--text3);
+        font-size: 12px;
+        line-height: 1.7;
+      }
+
+      /* Research button */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: var(--r);
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid var(--border2);
+        background: var(--surface2);
+        color: var(--text2);
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+      .btn:hover:not(:disabled) {
+        background: var(--surface3);
+        color: var(--text);
+      }
+      .btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      .btn.primary {
+        background: rgba(90, 143, 192, 0.15);
+        border-color: rgba(90, 143, 192, 0.4);
+        color: var(--blue);
+      }
+      .btn.primary:hover:not(:disabled) {
+        background: rgba(90, 143, 192, 0.25);
+      }
+      .btn-research {
+        width: 100%;
+        justify-content: center;
+        font-size: 14px;
+        padding: 10px;
+        margin-top: 0.5rem;
+      }
+
+      /* ── Main panel ── */
+      .main {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--bg);
+      }
+
+      /* Tabs */
+      .tabs {
+        display: flex;
+        padding: 0 1.25rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        flex-shrink: 0;
+      }
+      .tab {
+        display: inline-block;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text3);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.15s;
+        margin-bottom: -1px;
+      }
+      .tab:hover {
+        color: var(--text2);
+      }
+      .tab.on {
+        color: var(--blue);
+        border-bottom-color: var(--blue);
+      }
+
+      /* Content */
+      .content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.75rem;
+      }
+      .content::-webkit-scrollbar {
+        width: 5px;
+      }
+      .content::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 3px;
+      }
+
+      /* ── Welcome ── */
+      .welcome {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+        gap: 1.25rem;
+      }
+      .w-icon {
+        width: 64px;
+        height: 64px;
+        background: rgba(90, 143, 192, 0.07);
+        border: 1px solid rgba(90, 143, 192, 0.18);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+      }
+      .welcome h2 {
+        font-family: var(--serif);
+        font-size: 1.8rem;
+        font-weight: 300;
+        color: var(--text);
+      }
+      .welcome h2 em {
+        color: var(--blue);
+        font-style: italic;
+      }
+      .welcome p {
+        color: var(--text2);
+        font-size: 14px;
+        max-width: 420px;
+        line-height: 1.8;
+      }
+      .step-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        text-align: left;
+        width: 100%;
+        max-width: 360px;
+      }
+      .step {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        font-size: 13px;
+        color: var(--text2);
+      }
+      .step-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 1px solid rgba(90, 143, 192, 0.3);
+        background: rgba(90, 143, 192, 0.07);
+        color: var(--blue);
+        font-size: 11px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+
+      /* ── Progress ── */
+      .progress-wrap {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 1rem 0;
+      }
+      .progress-title {
+        font-family: var(--serif);
+        font-size: 1.2rem;
+        font-weight: 300;
+        color: var(--text);
+        margin-bottom: 1.25rem;
+      }
+      .progress-title em {
+        color: var(--blue);
+        font-style: italic;
+      }
+      .prog-bar {
+        height: 2px;
+        background: var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+      }
+      .prog-fill {
+        height: 100%;
+        background: var(--blue);
+        border-radius: 2px;
+        transition: width 0.5s ease;
+      }
+      .prog-msg {
+        font-size: 13px;
+        color: var(--text3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 1.5rem;
+      }
+      .doc-progress-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .doc-prog-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        font-size: 13px;
+      }
+      .doc-prog-item.done {
+        border-color: rgba(77, 184, 138, 0.25);
+      }
+      .doc-prog-status {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 1.5px solid var(--border2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        flex-shrink: 0;
+      }
+      .doc-prog-item.done .doc-prog-status {
+        border-color: var(--green);
+        background: rgba(77, 184, 138, 0.1);
+        color: var(--green);
+      }
+
+      /* ── Results ── */
+      .results-wrap {
+        max-width: 860px;
+        margin: 0 auto;
+      }
+
+      /* Query banner */
+      .query-banner {
+        background: rgba(90, 143, 192, 0.06);
+        border: 1px solid rgba(90, 143, 192, 0.15);
+        border-radius: var(--rl);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+      .query-banner-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--blue);
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+      }
+      .query-banner-text {
+        font-family: var(--serif);
+        font-size: 1.15rem;
+        font-weight: 300;
+        color: var(--text);
+        font-style: italic;
+      }
+
+      /* Stats row */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 9px;
+        margin-bottom: 1.5rem;
+      }
+      .stat {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: 10px 12px;
+        text-align: center;
+      }
+      .stat-v {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1.1;
+      }
+      .stat-l {
+        font-size: 10px;
+        color: var(--text3);
+        margin-top: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      /* Section label */
+      .sec-lbl {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text3);
+        font-weight: 600;
+        margin: 1.5rem 0 0.7rem;
+      }
+
+      /* Doc summary cards */
+      .doc-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .doc-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--rl);
+        overflow: hidden;
+        transition: border-color 0.2s;
+      }
+      .doc-card:hover {
+        border-color: var(--border2);
+      }
+      .doc-card-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .doc-card-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .doc-card-title {
+        flex: 1;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .doc-card-relevance {
+        font-size: 11px;
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-weight: 600;
+      }
+      .rel-high {
+        background: rgba(77, 184, 138, 0.12);
+        color: var(--green);
+      }
+      .rel-medium {
+        background: rgba(200, 169, 110, 0.12);
+        color: var(--accent);
+      }
+      .rel-low {
+        background: rgba(208, 96, 96, 0.1);
+        color: var(--red);
+      }
+      .doc-card-chev {
+        color: var(--text3);
+        font-size: 11px;
+        transition: transform 0.2s;
+      }
+      .doc-card.open .doc-card-chev {
+        transform: rotate(180deg);
+      }
+      .doc-card-body {
+        display: none;
+        padding: 0 14px 14px 14px;
+        border-top: 1px solid var(--border);
+      }
+      .doc-card.open .doc-card-body {
+        display: block;
+      }
+      .doc-card-body p {
+        font-size: 13.5px;
+        color: var(--text2);
+        margin-top: 12px;
+        line-height: 1.8;
+      }
+      .field-lbl {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        color: var(--text3);
+        font-weight: 600;
+        margin: 12px 0 5px;
+      }
+      .evidence-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .evidence-item {
+        font-size: 13px;
+        color: var(--text2);
+        padding: 8px 12px;
+        background: var(--surface2);
+        border-radius: 7px;
+        border-left: 2px solid rgba(90, 143, 192, 0.3);
+        line-height: 1.6;
+        font-style: italic;
+      }
+
+      /* Comparison */
+      .compare-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .compare-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--rl);
+        padding: 1rem 1.25rem;
+      }
+      .compare-card h4 {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text2);
+        margin-bottom: 0.65rem;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .compare-card h4::before {
+        content: "";
+        width: 10px;
+        height: 2px;
+        border-radius: 1px;
+        background: var(--blue);
+        flex-shrink: 0;
+      }
+      .compare-item {
+        font-size: 13px;
+        color: var(--text2);
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border);
+        line-height: 1.6;
+        display: flex;
+        gap: 8px;
+      }
+      .compare-item:last-child {
+        border-bottom: none;
+      }
+      .compare-item::before {
+        content: "→";
+        color: var(--blue);
+        flex-shrink: 0;
+        font-size: 11px;
+        margin-top: 2px;
+      }
+      .compare-contra::before {
+        content: "↔";
+        color: var(--accent);
+      }
+      .verdict-box {
+        background: rgba(90, 143, 192, 0.06);
+        border: 1px solid rgba(90, 143, 192, 0.15);
+        border-radius: var(--rl);
+        padding: 1rem 1.25rem;
+        margin-top: 12px;
+      }
+      .verdict-box p {
+        font-size: 14px;
+        color: var(--text2);
+        line-height: 1.8;
+        font-style: italic;
+      }
+
+      /* Report */
+      .report-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--rl);
+        padding: 1.5rem;
+        font-size: 14px;
+        color: var(--text2);
+        line-height: 1.85;
+        white-space: pre-wrap;
+      }
+      .report-box h2 {
+        font-family: var(--serif);
+        font-size: 1.2rem;
+        font-weight: 400;
+        color: var(--accent2);
+        margin: 1.25rem 0 0.5rem;
+      }
+      .report-box h2:first-child {
+        margin-top: 0;
+      }
+      .report-cursor {
+        display: inline-block;
+        width: 2px;
+        height: 1em;
+        background: var(--blue);
+        margin-left: 2px;
+        animation: blink-cursor 0.8s steps(1) infinite;
+      }
+      @keyframes blink-cursor {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* Chat */
+      .chat-wrap {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+        width: 100%;
+      }
+      .chat-msgs {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        overflow-y: auto;
+        padding-bottom: 0.75rem;
+      }
+      .chat-msgs::-webkit-scrollbar {
+        width: 3px;
+      }
+      .chat-msgs::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 2px;
+      }
+      .msg {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+      }
+      .msg.user {
+        flex-direction: row-reverse;
+      }
+      .av {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .msg.user .av {
+        background: rgba(90, 143, 192, 0.18);
+        color: var(--blue);
+      }
+      .msg.ai .av {
+        background: rgba(77, 184, 138, 0.13);
+        color: var(--green);
+      }
+      .bubble {
+        max-width: 78%;
+        padding: 10px 14px;
+        font-size: 13.5px;
+        line-height: 1.7;
+      }
+      .msg.user .bubble {
+        background: rgba(90, 143, 192, 0.09);
+        border: 1px solid rgba(90, 143, 192, 0.2);
+        color: var(--text);
+        border-radius: 12px 4px 12px 12px;
+      }
+      .msg.ai .bubble {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text2);
+        border-radius: 4px 12px 12px 12px;
+      }
+      .chat-bar {
+        display: flex;
+        gap: 8px;
+        margin-top: 0.75rem;
+        flex-shrink: 0;
+      }
+      .chat-in {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        border-radius: var(--r);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 13.5px;
+        padding: 10px 14px;
+        outline: none;
+        resize: none;
+        min-height: 42px;
+        max-height: 110px;
+        line-height: 1.5;
+        transition: border-color 0.2s;
+      }
+      .chat-in:focus {
+        border-color: rgba(90, 143, 192, 0.4);
+      }
+      .chat-in::placeholder {
+        color: var(--text3);
+      }
+
+      /* Evidence finder */
+      .evidence-finder {
+        max-width: 760px;
+        margin: 0 auto;
+        width: 100%;
+      }
+      .ev-input-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 1.25rem;
+      }
+
+      .ev-web-result {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--rl);
+        margin-bottom: 10px;
+        overflow: hidden;
+      }
+      .ev-web-head {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .ev-web-title {
+        font-size: 13px;
+        font-weight: 600;
+        flex: 1;
+      }
+      .ev-web-title a {
+        color: var(--blue);
+        text-decoration: none;
+      }
+      .ev-web-title a:hover {
+        text-decoration: underline;
+      }
+      .ev-web-url {
+        font-size: 11px;
+        color: var(--text3);
+        margin-top: 2px;
+        word-break: break-all;
+      }
+      .ev-source-badge {
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .ev-source-doc {
+        background: rgba(200, 169, 110, 0.12);
+        color: var(--accent);
+      }
+      .ev-source-web {
+        background: rgba(90, 143, 192, 0.12);
+        color: var(--blue);
+      }
+      .ev-input {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        border-radius: var(--r);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 13.5px;
+        padding: 10px 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .ev-input:focus {
+        border-color: rgba(90, 143, 192, 0.4);
+      }
+      .ev-input::placeholder {
+        color: var(--text3);
+      }
+      .ev-result {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--rl);
+        margin-bottom: 10px;
+        overflow: hidden;
+      }
+      .ev-result-head {
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        border-bottom: 1px solid var(--border);
+      }
+      .ev-passage {
+        font-size: 13px;
+        color: var(--text2);
+        padding: 10px 14px;
+        line-height: 1.75;
+        border-bottom: 1px solid var(--border);
+        font-style: italic;
+      }
+      .ev-passage:last-child {
+        border-bottom: none;
+      }
+
+      /* Dots loader */
+      .dots {
+        display: inline-flex;
+        gap: 3px;
+      }
+      .dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--blue);
+        animation: blink 1.2s infinite;
+      }
+      .dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes blink {
+        0%,
+        80%,
+        100% {
+          opacity: 0.2;
+          transform: scale(0.8);
+        }
+        40% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: 1.25rem;
+        right: 1.25rem;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: var(--r);
+        padding: 9px 14px;
+        font-size: 12.5px;
+        color: var(--text);
+        z-index: 999;
+        animation: tin 0.2s ease;
+        max-width: 320px;
+      }
+      @keyframes tin {
+        from {
+          transform: translateY(8px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .flash {
+        animation: fin 0.25s ease;
+      }
+      @keyframes fin {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="back-btn" href="/">← Home</a>
+      <div class="header-center">
+        <div class="logo-icon">
+          <img src="/static/ResearchAI_NoLogo.png" alt="ResearchAI" />
+        </div>
+        <span class="logo-name">Research<em>AI</em></span>
+      </div>
+      <div
+        style="display: flex; align-items: center; gap: 10px; margin-left: auto"
+      >
+        <div class="status-row">
+          <div class="status-dot" id="statusDot"></div>
+          <span class="status-label" id="statusLabel">Checking Ollama…</span>
+        </div>
+        <button
+          class="btn"
+          id="themeToggle"
+          style="padding: 6px 10px; font-size: 15px; flex-shrink: 0"
+        >
+          🌙
+        </button>
+      </div>
+    </header>
+
+    <div class="app">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <!-- Query -->
+        <div class="sb-section">
+          <div class="sb-label">Research question</div>
+          <div class="query-wrap">
+            <textarea
+              class="query-input"
+              id="queryInput"
+              placeholder="e.g. What are the main approaches to gradient descent optimization?"
+              rows="4"
+            ></textarea>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">Use my documents only</span>
+            <label class="toggle">
+              <input type="checkbox" id="docsOnlyToggle" checked />
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Upload -->
+        <div class="sb-section">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 0.5rem;
+            "
+          >
+            <div class="sb-label" style="margin-bottom: 0">
+              Documents
+              <span
+                id="docCountBadge"
+                style="color: var(--text3); font-weight: 400"
+              ></span>
+            </div>
+            <button
+              class="btn"
+              id="rBtnNewFolder"
+              style="font-size: 11px; padding: 3px 9px"
+              title="Create a folder"
+            >
+              📁 New
+            </button>
+          </div>
+          <button
+            class="btn"
+            id="btnRSelectMode"
+            style="font-size: 11px; padding: 3px 9px; margin-bottom: 0.5rem"
+          >
+            Select
+          </button>
+          <div class="drop-zone" id="dropZone">
+            <input
+              type="file"
+              id="fileIn"
+              accept=".pdf,.txt,.md,.docx,.pptx,.ppt"
+              multiple
+            />
+            <div class="drop-label">
+              <strong>Upload files</strong> or drag &amp; drop
+            </div>
+            <div class="drop-types">
+              PDF · DOCX · PPT · PPTX · TXT · MD — up to 10 files
+            </div>
+          </div>
+        </div>
+
+        <div class="sb-delete-bar" id="rDeleteBar">
+          <div class="sb-delete-info">
+            <span id="rDeleteCount">0</span> selected
+          </div>
+          <div style="display: flex; gap: 6px">
+            <button
+              class="btn"
+              id="btnRDeleteCancel"
+              style="font-size: 12px; padding: 4px 10px"
+            >
+              Cancel</button
+            ><button
+              class="btn"
+              id="btnRDeleteConfirm"
+              style="
+                font-size: 12px;
+                padding: 4px 10px;
+                border-color: rgba(208, 96, 96, 0.4);
+                color: var(--red);
+              "
+              disabled
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+        <!-- Doc list -->
+        <div class="doc-list" id="docList">
+          <div class="empty-docs">
+            No documents yet.<br />Upload files to begin.
+          </div>
+        </div>
+
+        <!-- Research button -->
+        <div
+          style="
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+          "
+        >
+          <button class="btn primary btn-research" id="btnResearch" disabled>
+            🔬 Start Research
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="main">
+        <div class="tabs" id="tabs">
+          <div class="tab on" data-t="overview">Overview</div>
+          <div class="tab" data-t="report">Report</div>
+          <div class="tab" data-t="evidence">Evidence</div>
+          <div class="tab" data-t="chat">Ask AI</div>
+          <div class="tab" data-t="file">View file</div>
+        </div>
+        <div class="content" id="content">
+          <!-- Welcome screen -->
+          <div class="welcome" id="welcomeScreen">
+            <div class="w-icon">🔬</div>
+            <h2>Research<em>AI</em></h2>
+            <p>
+              Upload multiple documents, enter a research question, and get a
+              structured synthesis — findings, comparisons, gaps, and a full
+              report.
+            </p>
+            <div class="step-list">
+              <div class="step">
+                <div class="step-num">1</div>
+                <span>Enter your research question in the sidebar</span>
+              </div>
+              <div class="step">
+                <div class="step-num">2</div>
+                <span
+                  >Upload 2 or more documents (papers, articles, notes)</span
+                >
+              </div>
+              <div class="step">
+                <div class="step-num">3</div>
+                <span
+                  >Hit
+                  <strong style="color: var(--blue)">Start Research</strong> and
+                  get a full synthesis</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Notes panel (Report tab only) -->
+      <aside class="notes-panel" id="rNotesPanel" style="display: none">
+        <div class="notes-head">
+          <span class="notes-head-title">Notes</span>
+          <div class="notes-head-btns">
+            <button
+              class="notes-clear-btn"
+              id="rNotesClearBtn"
+              title="Delete all notes"
+            >
+              Clear
+            </button>
+            <button class="notes-add-btn" id="rNotesAddBtn">+ Note</button>
+          </div>
+        </div>
+        <div class="notes-list" id="rNotesList"></div>
+        <div class="note-compose" id="rNoteCompose">
+          <textarea
+            id="rNoteTextarea"
+            placeholder="Type your note…"
+            rows="3"
+          ></textarea>
+          <div class="note-compose-btns">
+            <button
+              class="btn"
+              id="rNoteCancelBtn"
+              style="font-size: 12px; padding: 4px 10px"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn primary"
+              id="rNoteSaveBtn"
+              style="font-size: 12px; padding: 4px 10px"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Sessions panel -->
+      <aside class="sessions-panel">
+        <div class="sessions-head">
+          <span class="sessions-label">Sessions</span>
+          <button
+            class="sessions-clear"
+            id="btnClearSessions"
+            title="Clear all sessions"
+          >
+            Clear
+          </button>
+        </div>
+        <div class="sessions-list" id="sessionsList">
+          <div class="session-empty">
+            No sessions yet.<br />Run a research query<br />to see history here.
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      const SESSION_ID = "research_session_v1";
+      const R = {
+        docs: {},
+        result: null,
+        chatHistory: [],
+        selectMode: false,
+        selectedIds: new Set(),
+        viewState: {},
+        activeTab: "overview",
+        docsForResearch: new Set(),
+        sessions: [],
+        folders: {},
+        notes: {},
+      };
+      // notes: { sessionId: [{id, text, createdAt}] }
+
+      // ── Status ──
+      async function checkStatus() {
+        try {
+          const res = await fetch("/api/status");
+          const d = await res.json();
+          const dot = document.getElementById("statusDot"),
+            lbl = document.getElementById("statusLabel");
+          if (!d.running) {
+            dot.className = "status-dot err";
+            lbl.textContent = "Ollama not running — run: ollama serve";
+          } else if (!d.model_ready) {
+            dot.className = "status-dot err";
+            lbl.textContent = "Model missing — run: ollama pull llama3.2";
+          } else {
+            dot.className = "status-dot ok";
+            lbl.textContent = "Ollama ready ✓";
+          }
+        } catch (e) {
+          document.getElementById("statusLabel").textContent =
+            "Server not reachable";
+        }
+      }
+      checkStatus();
+      setInterval(checkStatus, 15000);
+
+      // ── Tabs ──
+      document.querySelectorAll(".tab").forEach((t) => {
+        t.addEventListener("click", () => {
+          const prev = document.querySelector(".tab.on");
+          if (prev) rSaveViewState(prev.dataset.t);
+          document
+            .querySelectorAll(".tab")
+            .forEach((x) => x.classList.remove("on"));
+          t.classList.add("on");
+          R.activeTab = t.dataset.t;
+          const tab = t.dataset.t;
+          rShowNotesPanel(tab === "report");
+          if (tab === "overview") {
+            renderOverview();
+            requestAnimationFrame(() => rRestoreViewState("overview"));
+          } else if (tab === "report") renderReport();
+          else if (tab === "evidence") renderEvidence();
+          else if (tab === "chat") renderChat();
+          else if (tab === "file") renderResearchFile();
+        });
+      });
+      function switchTab(name) {
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.toggle("on", t.dataset.t === name));
+      }
+      function rSaveViewState(tab) {
+        const el = document.getElementById("content");
+        if (!el) return;
+        const open = [];
+        el.querySelectorAll(".doc-card").forEach((card, i) => {
+          if (card.classList.contains("open")) open.push(i);
+        });
+        R.viewState[tab] = { scrollTop: el.scrollTop, openCards: open };
+      }
+      function rRestoreViewState(tab) {
+        const el = document.getElementById("content");
+        if (!el) return;
+        const s = R.viewState[tab];
+        if (!s) return;
+        if (s.openCards && s.openCards.length)
+          el.querySelectorAll(".doc-card").forEach((c, i) =>
+            c.classList.toggle("open", s.openCards.includes(i)),
+          );
+        requestAnimationFrame(() => {
+          el.scrollTop = s.scrollTop || 0;
+        });
+      }
+
+      // ── Upload ──
+      const dz = document.getElementById("dropZone"),
+        fi = document.getElementById("fileIn");
+      fi.addEventListener("change", (e) => doUpload(e.target.files));
+      dz.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dz.classList.add("over");
+      });
+      dz.addEventListener("dragleave", () => dz.classList.remove("over"));
+      dz.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dz.classList.remove("over");
+        doUpload(e.dataTransfer.files);
+      });
+
+      async function doUpload(files) {
+        for (const file of files) {
+          if (Object.keys(R.docs).length >= 10) {
+            toast("Max 10 documents", true);
+            break;
+          }
+          toast("Loading " + file.name + "…");
+          const fd = new FormData();
+          fd.append("file", file);
+          fd.append("session_id", SESSION_ID);
+          const res = await fetch("/api/research/upload", {
+            method: "POST",
+            body: fd,
+          });
+          const data = await res.json();
+          if (data.error) {
+            toast(data.error, true);
+            continue;
+          }
+          R.docs[data.doc_id] = { ...data, uploadedAt: new Date() };
+          R.docsForResearch.add(data.doc_id);
+          rSave();
+          renderDocList();
+          updateResearchBtn();
+          toast("✓ " + file.name + " — " + data.page_count + " pages");
+        }
+        fi.value = "";
+      }
+
+      function rDocItemHTML(d) {
+        return `<div class="r-doc-item${R.selectMode ? " select-mode" : ""}${R.selectedIds && R.selectedIds.has(d.doc_id) ? " r-selected" : ""}" draggable="true" ondragstart="rDragDoc(event,'${d.doc_id}')" onclick="R.selectMode?rToggleSelect('${d.doc_id}'):rToggleDocForResearch('${d.doc_id}')">
+    <div class="r-doc-check" onclick="event.stopPropagation();rToggleSelect('${d.doc_id}')">✓</div>
+    <div class="r-doc-sel${R.docsForResearch && R.docsForResearch.has(d.doc_id) ? " checked" : ""}" onclick="event.stopPropagation();rToggleDocForResearch('${d.doc_id}')" title="Include in research">✓</div>
+    <div class="r-doc-badge b-${d.ext}">${d.ext.toUpperCase().slice(0, 3)}</div>
+    <div class="r-doc-info">
+      <div class="r-doc-name">${esc(d.name)}</div>
+      <div class="r-doc-meta">${d.page_count} pages · ${d.word_count.toLocaleString()} words${d.uploadedAt ? "<br>" + fmtTime(d.uploadedAt) : ""}</div>
+    </div>
+    <button class="r-doc-del" onclick="event.stopPropagation();removeDoc('${d.doc_id}')" title="Remove">✕</button>
+  </div>`;
+      }
+
+      function renderDocList() {
+        const dl = document.getElementById("docList");
+        const docs = Object.values(R.docs);
+        document.getElementById("docCountBadge").textContent = docs.length
+          ? `(${docs.length})`
+          : "";
+        if (!docs.length) {
+          dl.innerHTML =
+            '<div class="empty-docs">No documents yet.<br>Upload files to begin.</div>';
+          return;
+        }
+        const allFolderDocIds = new Set(
+          Object.values(R.folders).flatMap((f) => f.docIds),
+        );
+        const unfoldered = docs.filter((d) => !allFolderDocIds.has(d.doc_id));
+        let html = "";
+        Object.entries(R.folders).forEach(([fid, folder]) => {
+          const folderDocs = folder.docIds
+            .map((id) => R.docs[id])
+            .filter(Boolean);
+          const isOpen = folder.open !== false;
+          html += `<div class="folder-section">
+      <div class="folder-header${isOpen ? " open" : ""}" onclick="rToggleFolder('${fid}')">
+        <span class="folder-icon">▶</span>
+        <span class="folder-name-lbl">📁 ${esc(folder.name)}</span>
+        <span class="folder-count-lbl">${folderDocs.length}</span>
+        <div class="folder-acts" onclick="event.stopPropagation()">
+          <button class="folder-act-btn" onclick="rRenameFolder('${fid}')">✏️</button>
+          <button class="folder-act-btn" onclick="rDeleteFolder('${fid}')">🗑</button>
+        </div>
+      </div>
+      <div class="folder-docs-wrap${isOpen ? " open" : ""}">
+        ${folderDocs.map((d) => rDocItemHTML(d)).join("")}
+        <div class="r-folder-drop" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="rDropToFolder(event,'${fid}')">Drop docs here</div>
+      </div>
+    </div>`;
+        });
+        html += unfoldered.map((d) => rDocItemHTML(d)).join("");
+        dl.innerHTML = html;
+      }
+
+      async function removeDoc(id) {
+        await fetch("/api/research/remove", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: SESSION_ID, doc_id: id }),
+        });
+        delete R.docs[id];
+        rSave();
+        renderDocList();
+        updateResearchBtn();
+      }
+
+      function updateResearchBtn() {
+        const q = document.getElementById("queryInput").value.trim();
+        const selected = [...R.docsForResearch].filter((id) => R.docs[id]);
+        const n = selected.length;
+        const webOn = !document.getElementById("docsOnlyToggle").checked;
+        const btn = document.getElementById("btnResearch");
+        // Allow research if: has query AND (has selected docs OR web search is on)
+        btn.disabled = !(q && (n >= 1 || webOn));
+        if (webOn && n === 0) btn.innerHTML = "🌐 Web search only";
+        else if (webOn && n >= 1)
+          btn.innerHTML = `🔬 Docs + Web (${n} doc${n > 1 ? "s" : ""})`;
+        else if (n >= 2) btn.innerHTML = `🔬 Research across ${n} docs`;
+        else if (n === 1) btn.innerHTML = "🔬 Analyze 1 doc";
+        else btn.innerHTML = "🔬 Select docs above";
+      }
+      document
+        .getElementById("queryInput")
+        .addEventListener("input", updateResearchBtn);
+      document
+        .getElementById("docsOnlyToggle")
+        .addEventListener("change", updateResearchBtn);
+
+      // ── Research ──
+      document
+        .getElementById("btnResearch")
+        .addEventListener("click", startResearch);
+
+      async function startResearch() {
+        const query = document.getElementById("queryInput").value.trim();
+        const selectedIds = [...R.docsForResearch].filter((id) => R.docs[id]);
+        const webOn = !document.getElementById("docsOnlyToggle").checked;
+        if (!query || (!selectedIds.length && !webOn)) return;
+
+        const btn = document.getElementById("btnResearch");
+        btn.disabled = true;
+        btn.textContent = "⟳ Researching…";
+
+        // Clear query input
+        document.getElementById("queryInput").value = "";
+
+        const docs = selectedIds.map((id) => R.docs[id]);
+        const docsOnly = document.getElementById("docsOnlyToggle").checked;
+
+        // Show progress UI
+        const content = document.getElementById("content");
+        content.innerHTML = `
+    <div class="progress-wrap flash" id="progressWrap">
+      <div class="progress-title">Researching: <em>${esc(query)}</em></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:5%"></div></div>
+      <div class="prog-msg" id="progMsg">
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <span>Starting analysis…</span>
+      </div>
+      <div class="doc-progress-list" id="docProgList">
+        ${docs
+          .map(
+            (d) => `
+          <div class="r-doc-item" id="dprog_${d.doc_id}">
+            <div class="r-doc-badge b-${d.ext}">${d.ext.toUpperCase().slice(0, 3)}</div>
+            <div class="r-doc-info">
+              <div class="r-doc-name">${esc(d.name)}</div>
+              <div class="r-doc-meta" id="dmeta_${d.doc_id}">Waiting…</div>
+            </div>
+            <div class="doc-prog-status" id="dstatus_${d.doc_id}">…</div>
+          </div>`,
+          )
+          .join("")}
+      </div>
+    </div>`;
+
+        // Reset result state
+        R.result = null;
+        R.chatHistory = [];
+
+        // SSE stream
+        const res = await fetch("/api/research/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: SESSION_ID,
+            query,
+            docs_only: docsOnly,
+            selected_doc_ids: selectedIds,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          btn.disabled = false;
+          btn.innerHTML = updateResearchBtn() || "🔬 Start Research";
+          updateResearchBtn();
+          if (err.error === "NO_DOCS_SERVER_RESET") {
+            toast("⚠ Server restarted — please re-upload your documents", true);
+            R.docs = {};
+            R.docsForResearch = new Set();
+            renderDocList();
+            updateResearchBtn();
+            rSave();
+          } else {
+            toast("Research failed: " + (err.error || res.status), true);
+          }
+          document.getElementById("content").innerHTML = "";
+          showWelcome();
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        let reportText = "";
+        let docSummaries = [];
+        let comparison = null;
+        let docsAnalyzed = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const evt = JSON.parse(line.slice(6));
+              const pf = document.getElementById("progFill");
+              const pm = document.getElementById("progMsg");
+
+              if (evt.event === "status") {
+                if (pm)
+                  pm.innerHTML = `<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><span>${esc(evt.msg)}</span>`;
+                if (pf)
+                  pf.style.width =
+                    Math.min(90, 10 + (docsAnalyzed / docs.length) * 60) + "%";
+              } else if (evt.event === "doc_done") {
+                docsAnalyzed++;
+                docSummaries.push(evt.summary);
+                const statusEl = document.getElementById(
+                  "dstatus_" + evt.doc_id,
+                );
+                const metaEl = document.getElementById("dmeta_" + evt.doc_id);
+                const itemEl = document.getElementById("dprog_" + evt.doc_id);
+                if (statusEl) statusEl.textContent = "✓";
+                if (metaEl)
+                  metaEl.textContent =
+                    "Analyzed · " +
+                    (evt.summary.relevance || "") +
+                    " relevance";
+                if (itemEl) itemEl.classList.add("doc-prog-item", "done");
+                if (pf)
+                  pf.style.width =
+                    Math.min(85, 20 + (docsAnalyzed / docs.length) * 55) + "%";
+              } else if (evt.event === "comparison") {
+                comparison = evt.comparison;
+              } else if (evt.event === "report_token") {
+                reportText += evt.token;
+              } else if (evt.event === "done") {
+                R.result = {
+                  query,
+                  docSummaries: evt.doc_summaries || docSummaries,
+                  comparison: evt.comparison || comparison,
+                  reportText: evt.report_text || reportText,
+                };
+                // Save to sessions history
+                R.sessions.unshift({
+                  id: Date.now(),
+                  query,
+                  timestamp: new Date(),
+                  docNames: docs.map((d) => d.name),
+                  sessionDocs: docs.map((d) => ({
+                    doc_id: d.doc_id,
+                    name: d.name,
+                    ext: d.ext,
+                    page_count: d.page_count,
+                    word_count: d.word_count,
+                  })),
+                  result: R.result,
+                });
+                if (R.sessions.length > 20) R.sessions.pop();
+                renderSessions();
+                rSave();
+                if (pf) pf.style.width = "100%";
+                if (pm)
+                  pm.innerHTML =
+                    '<span style="color:var(--green)">✓ Research complete</span>';
+                setTimeout(() => {
+                  switchTab("overview");
+                  renderOverview();
+                }, 500);
+                toast(
+                  "✓ Research complete — " +
+                    (R.result.docSummaries || []).length +
+                    " documents analyzed",
+                );
+              }
+            } catch (e) {}
+          }
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = `🔬 Re-research`;
+      }
+
+      // ── Overview tab ──
+      function renderOverview() {
+        if (!R.result) {
+          showWelcome();
+          return;
+        }
+        const { query, docSummaries, comparison } = R.result;
+        const content = document.getElementById("content");
+
+        content.innerHTML = `
+    <div class="results-wrap flash" id="ovWrap">
+      <div class="ov-search-bar"><input class="ov-search-input" id="ovSearchInput" placeholder="Search results… (Ctrl+F)" type="text" autocomplete="off"><span class="ov-search-count" id="ovSearchCount"></span><div class="ov-search-nav"><button id="ovSearchPrev" disabled>↑</button><button id="ovSearchNext" disabled>↓</button></div></div>
+      <div class="query-banner">
+        <div class="query-banner-label">Research question</div>
+        <div class="query-banner-text">${esc(query)}</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-v">${docSummaries.length}</div><div class="stat-l">Documents</div></div>
+        <div class="stat"><div class="stat-v">${docSummaries.filter((d) => d.relevance === "high").length}</div><div class="stat-l">High relevance</div></div>
+        <div class="stat"><div class="stat-v">${(comparison?.consensus || []).length}</div><div class="stat-l">Consensus points</div></div>
+        <div class="stat"><div class="stat-v">${(comparison?.contradictions || []).length}</div><div class="stat-l">Contradictions</div></div>
+      </div>
+
+      ${
+        comparison?.overall_verdict
+          ? `
+      <div class="verdict-box" style="margin-bottom:1.5rem;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--blue);font-weight:600;margin-bottom:.5rem;">Overall synthesis</div>
+        <p>${esc(comparison.overall_verdict)}</p>
+      </div>`
+          : ""
+      }
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:1.5rem 0 .7rem;">
+        <div class="sec-lbl" style="margin:0">Per-document analysis</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn" id="btnExpandAll" style="font-size:12px;padding:4px 11px;">Expand all</button>
+          <button class="btn" id="btnCollapseAll" style="font-size:12px;padding:4px 11px;">Collapse all</button>
+        </div>
+      </div>
+      <div class="doc-cards" id="docCards"></div>
+
+      ${
+        comparison?.consensus?.length || comparison?.contradictions?.length
+          ? `
+      <div class="sec-lbl" style="margin-top:1.5rem;">Cross-document comparison</div>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4>Points of consensus</h4>
+          ${(comparison.consensus || []).map((c) => `<div class="compare-item">${esc(c)}</div>`).join("") || '<div style="font-size:13px;color:var(--text3)">None identified</div>'}
+        </div>
+        <div class="compare-card">
+          <h4 style="color:var(--accent2);">Contradictions &amp; debates</h4>
+          ${(comparison.contradictions || []).map((c) => `<div class="compare-item compare-contra">${esc(c)}</div>`).join("") || '<div style="font-size:13px;color:var(--text3)">None identified</div>'}
+        </div>
+      </div>`
+          : ""
+      }
+
+      ${
+        comparison?.unique_contributions?.length
+          ? `
+      <div class="sec-lbl" style="margin-top:1.5rem;">Unique contributions</div>
+      <div class="doc-cards">
+        ${(comparison.unique_contributions || [])
+          .map(
+            (u) => `
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;font-size:13.5px;color:var(--text2);line-height:1.7;">
+            <strong style="color:var(--text);font-size:13px;">${esc(u.doc_name || "")}</strong><br>${esc(u.contribution || "")}
+          </div>`,
+          )
+          .join("")}
+      </div>`
+          : ""
+      }
+    </div>`;
+
+        // Build doc cards
+        const dc = document.getElementById("docCards");
+        docSummaries.forEach((s, i) => {
+          const card = document.createElement("div");
+          card.className = "doc-card" + (i === 0 ? " open" : "");
+          const relClass =
+            s.relevance === "high"
+              ? "rel-high"
+              : s.relevance === "low"
+                ? "rel-low"
+                : "rel-medium";
+          card.innerHTML = `
+      <div class="doc-card-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="doc-card-icon">📄</div>
+        <div class="doc-card-title">${esc(s.doc_name || "")}</div>
+        <div class="doc-card-relevance ${relClass}">${s.relevance || "?"}</div>
+        <div class="doc-card-chev">▾</div>
+      </div>
+      <div class="doc-card-body">
+        <p>${esc(s.summary || "")}</p>
+        ${s.methods && s.methods !== "Not specified" ? `<div class="field-lbl">Methods / approach</div><p style="font-style:italic">${esc(s.methods)}</p>` : ""}
+        <div class="field-lbl">Conclusion</div><p>${esc(s.conclusion || "")}</p>
+        ${s.evidence?.length ? `<div class="field-lbl">Key evidence</div><div class="evidence-list">${s.evidence.map((e) => `<div class="evidence-item">${esc(e)}</div>`).join("")}</div>` : ""}
+      </div>`;
+          dc.appendChild(card);
+        });
+        const bE = document.getElementById("btnExpandAll"),
+          bC = document.getElementById("btnCollapseAll");
+        if (bE)
+          bE.onclick = () =>
+            document
+              .querySelectorAll(".doc-card")
+              .forEach((d) => d.classList.add("open"));
+        if (bC)
+          bC.onclick = () => {
+            document
+              .querySelectorAll(".doc-card")
+              .forEach((d) => d.classList.remove("open"));
+            document.getElementById("content").scrollTop = 0;
+          };
+        requestAnimationFrame(initOverviewSearch);
+      }
+
+      // ── Report tab ──
+      function renderReport() {
+        const content = document.getElementById("content");
+        if (!R.result?.reportText) {
+          content.innerHTML =
+            '<div style="text-align:center;padding:3rem;color:var(--text3)">No report yet. Run a research analysis first.</div>';
+          return;
+        }
+        const html = markdownToHtml(R.result.reportText);
+        content.innerHTML = `<div class="results-wrap flash"><div class="report-box">${html}</div></div>`;
+      }
+
+      function markdownToHtml(text) {
+        return esc(text)
+          .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+          .replace(
+            /^\* (.+)$/gm,
+            '<div style="display:flex;gap:8px;margin:4px 0;"><span style="color:var(--blue);flex-shrink:0;">•</span><span>$1</span></div>',
+          )
+          .replace(
+            /^\- (.+)$/gm,
+            '<div style="display:flex;gap:8px;margin:4px 0;"><span style="color:var(--blue);flex-shrink:0;">•</span><span>$1</span></div>',
+          )
+          .replace(
+            /\*\*(.+?)\*\*/g,
+            '<strong style="color:var(--text)">$1</strong>',
+          )
+          .replace(/\n\n/g, '</p><p style="margin-top:.75rem">')
+          .replace(/\n/g, "<br>");
+      }
+
+      // ── Evidence tab ──
+      function renderEvidence() {
+        const content = document.getElementById("content");
+        const hasDocs = Object.keys(R.docs).length > 0;
+        content.innerHTML = `
+    <div class="evidence-finder flash">
+      <div style="margin-bottom:1rem;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);font-weight:600;margin-bottom:.5rem;">Find evidence</div>
+        <p style="font-size:13px;color:var(--text3);">Search for supporting passages across your documents and the web.</p>
+      </div>
+      <div class="ev-input-row">
+        <input class="ev-input" id="evInput" placeholder="e.g. cancer is caused by genetic mutations" type="text">
+        <button class="btn primary" id="evBtn">Find</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+        <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text2);cursor:pointer;">
+          <input type="checkbox" id="evWebToggle" ${!hasDocs ? "checked" : ""} style="width:14px;height:14px;accent-color:var(--blue);">
+          <span>🌐 Also search the web</span>
+        </label>
+        ${!hasDocs ? '<span style="font-size:11px;color:var(--text3);">(no docs uploaded — web only)</span>' : ""}
+      </div>
+      <div id="evResults"></div>
+    </div>`;
+
+        const btn = document.getElementById("evBtn");
+        const inp = document.getElementById("evInput");
+        inp.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") btn.click();
+        });
+        btn.addEventListener("click", async () => {
+          const claim = inp.value.trim();
+          if (!claim) return;
+          const searchWeb = document.getElementById("evWebToggle").checked;
+          btn.disabled = true;
+          btn.textContent = "…";
+          const res = await fetch("/api/research/evidence", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              session_id: SESSION_ID,
+              claim,
+              search_web: searchWeb,
+            }),
+          });
+          const data = await res.json();
+          btn.disabled = false;
+          btn.textContent = "Find";
+          const er = document.getElementById("evResults");
+          if (!data.results?.length) {
+            er.innerHTML =
+              '<div style="color:var(--text3);font-size:13px;padding:.5rem 0">No relevant passages found.</div>';
+            return;
+          }
+          er.innerHTML = data.results
+            .map((r) => {
+              if (r.type === "web") {
+                return `<div class="ev-web-result flash">
+          <div class="ev-web-head">
+            <div style="flex:1;">
+              <div class="ev-web-title"><a href="${r.url}" target="_blank">${esc(r.title)}</a></div>
+              <div class="ev-web-url">${esc(r.url)}</div>
+            </div>
+            <span class="ev-source-badge ev-source-web">🌐 Web</span>
+          </div>
+          <div class="ev-passage">${esc(r.snippet)}</div>
+        </div>`;
+              }
+              return `<div class="ev-result flash">
+        <div class="ev-result-head">
+          <span>📄 ${esc(r.doc_name)}</span>
+          <span class="ev-source-badge ev-source-doc">Doc</span>
+        </div>
+        ${r.passages.map((p) => `<div class="ev-passage">${esc(p)}</div>`).join("")}
+      </div>`;
+            })
+            .join("");
+        });
+      }
+
+      // ── Chat tab ──
+      function renderChat() {
+        const content = document.getElementById("content");
+        const hist = R.chatHistory || [];
+        const docCount = Object.keys(R.docs).length;
+        content.innerHTML = `
+    <div class="chat-wrap flash" style="height:100%">
+      <div class="chat-msgs" id="cm">
+        ${!hist.length ? `<div style="text-align:center;color:var(--text3);font-size:13px;padding:2rem">Ask anything across your <strong style="color:var(--text2)">${docCount} document${docCount !== 1 ? "s" : ""}</strong></div>` : ""}
+        ${hist.map((m) => bubble(m.role, m.content)).join("")}
+      </div>
+      <div class="chat-bar">
+        <textarea class="chat-in" id="ci" placeholder="Ask a question across all documents…" rows="1"></textarea>
+        <button class="btn primary" id="bsend">Send</button>
+      </div>
+    </div>`;
+
+        const cm = document.getElementById("cm"),
+          ci = document.getElementById("ci"),
+          bs = document.getElementById("bsend");
+        cm.scrollTop = cm.scrollHeight;
+        ci.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            send();
+          }
+        });
+        ci.addEventListener("input", () => {
+          ci.style.height = "auto";
+          ci.style.height = Math.min(ci.scrollHeight, 110) + "px";
+        });
+        bs.addEventListener("click", send);
+
+        async function send() {
+          const q = ci.value.trim();
+          if (!q) return;
+          ci.value = "";
+          ci.style.height = "";
+          bs.disabled = true;
+          cm.innerHTML += bubble("user", q);
+          const lid = "l" + Date.now();
+          cm.innerHTML += `<div class="msg ai" id="${lid}"><div class="av">AI</div><div class="bubble"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>`;
+          cm.scrollTop = cm.scrollHeight;
+          try {
+            const res = await fetch("/api/research/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                session_id: SESSION_ID,
+                question: q,
+                history: R.chatHistory,
+              }),
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            R.chatHistory.push({ role: "user", content: q });
+            R.chatHistory.push({ role: "assistant", content: data.reply });
+            rSave();
+            const el = document.getElementById(lid);
+            if (el) el.outerHTML = bubble("ai", data.reply);
+          } catch (e) {
+            const el = document.getElementById(lid);
+            if (el) el.outerHTML = bubble("ai", "Error: " + e.message);
+          }
+          bs.disabled = false;
+          cm.scrollTop = cm.scrollHeight;
+        }
+      }
+
+      function bubble(role, text) {
+        return `<div class="msg ${role}"><div class="av">${role === "user" ? "You" : "AI"}</div><div class="bubble">${esc(text).replace(/\n/g, "<br>")}</div></div>`;
+      }
+
+      function showWelcome() {
+        rShowNotesPanel(false);
+        document.getElementById("content").innerHTML =
+          document.getElementById("welcomeScreen")?.outerHTML ||
+          '<div class="welcome"><div class="w-icon">🔬</div><h2>Research<em>AI</em></h2></div>';
+      }
+
+      // ── Session ──
+      const R_KEY = "researchai_v1";
+      function rSave() {
+        try {
+          const d = {
+            docs: R.docs,
+            sessions: R.sessions,
+            docsForResearch: [...R.docsForResearch],
+            folders: R.folders,
+            currentSessionId: R.currentSessionId || null,
+            notes: R.notes,
+          };
+          const j = JSON.stringify(d);
+          localStorage.setItem(
+            R_KEY,
+            j.length > 4 * 1024 * 1024
+              ? JSON.stringify({
+                  ...d,
+                  sessions: R.sessions
+                    .slice(0, 5)
+                    .map((s) => ({ ...s, result: null })),
+                })
+              : j,
+          );
+        } catch (e) {}
+      }
+      function rLoad() {
+        try {
+          const raw = localStorage.getItem(R_KEY);
+          if (!raw) return;
+          const s = JSON.parse(raw);
+          if (s.docs && Object.keys(s.docs).length) {
+            Object.keys(s.docs).forEach((id) => {
+              if (s.docs[id].uploadedAt)
+                s.docs[id].uploadedAt = new Date(s.docs[id].uploadedAt);
+            });
+            Object.assign(R.docs, s.docs);
+          }
+          if (s.folders && typeof s.folders === "object") R.folders = s.folders;
+          if (s.docsForResearch) {
+            R.docsForResearch = new Set(
+              s.docsForResearch.filter((id) => R.docs[id]),
+            );
+          } else {
+            Object.keys(R.docs).forEach((id) => R.docsForResearch.add(id));
+          }
+          if (s.sessions && s.sessions.length) {
+            R.sessions = s.sessions.map((sess) => ({
+              ...sess,
+              timestamp: new Date(sess.timestamp),
+            }));
+            renderSessions();
+          }
+          if (s.currentSessionId) R.currentSessionId = s.currentSessionId;
+          if (s.notes && typeof s.notes === "object") R.notes = s.notes;
+          if (Object.keys(R.docs).length) {
+            renderDocList();
+            updateResearchBtn();
+            toast("📂 Documents restored");
+          }
+        } catch (e) {
+          localStorage.removeItem(R_KEY);
+        }
+      }
+
+      // ── Theme ──
+      (function () {
+        const s = localStorage.getItem("rai_theme");
+        if (s === "light") document.documentElement.classList.add("light");
+      })();
+
+      // ── View file ──
+      function renderResearchFile() {
+        const content = document.getElementById("content");
+        // Use session-specific docs if a session is loaded, else fall back to uploaded docs
+        let docs = [];
+        if (R.result) {
+          // Find the current session to get its specific docs
+          const curSession = R.sessions.find((s) => s.result === R.result);
+          if (
+            curSession &&
+            curSession.sessionDocs &&
+            curSession.sessionDocs.length
+          ) {
+            docs = curSession.sessionDocs;
+          } else if (R.result.docSummaries && R.result.docSummaries.length) {
+            // Fallback: build from docSummaries
+            docs = R.result.docSummaries.map((s) => ({
+              doc_id: s.doc_id,
+              name: s.doc_name || s.doc_id,
+              ext: (s.doc_name || "").split(".").pop().toLowerCase() || "pdf",
+              page_count: 0,
+              word_count: 0,
+            }));
+          }
+        }
+        if (!docs.length) {
+          content.innerHTML =
+            '<div style="text-align:center;padding:3rem;color:var(--text3)">No documents were used in this session.<br><span style="font-size:12px;margin-top:6px;display:block;">This may be a web-only research session.</span></div>';
+          return;
+        }
+        const fileHTML = docs
+          .map((d) => {
+            const url = "/api/research/file/" + d.doc_id;
+            const ext = (d.ext || "").toLowerCase();
+            let action = "";
+            if (ext === "pdf") {
+              action = `<a href="${url}" target="_blank" class="btn" style="font-size:12px;padding:5px 11px;text-decoration:none;flex-shrink:0;">Open PDF ↗</a>`;
+            } else if (ext === "txt" || ext === "md") {
+              action = `<a href="${url}" target="_blank" class="btn" style="font-size:12px;padding:5px 11px;text-decoration:none;flex-shrink:0;">Open ↗</a>`;
+            } else {
+              action = `<a href="${url}" download="${esc(d.name)}" class="btn" style="font-size:12px;padding:5px 11px;text-decoration:none;flex-shrink:0;">⬇ Download</a>`;
+            }
+            return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;">
+      <div class="r-doc-badge b-${ext}">${ext.toUpperCase().slice(0, 3)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(d.name)}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">${d.page_count ? d.page_count + " pages" : ""}${d.word_count ? " · " + d.word_count.toLocaleString() + " words" : ""}</div>
+      </div>
+      ${action}
+    </div>`;
+          })
+          .join("");
+        content.innerHTML = `<div class="results-wrap flash" style="max-width:800px;margin:0 auto;">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);font-weight:600;margin-bottom:1rem;">Documents used in this session</div>
+    ${fileHTML}
+  </div>`;
+      }
+
+      // ── fmtTime ──
+      function fmtTime(date) {
+        if (!date) return "";
+        const d = new Date(date),
+          pad = (n) => String(n).padStart(2, "0"),
+          M = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ],
+          h = d.getHours(),
+          ap = h >= 12 ? "PM" : "AM",
+          h12 = h % 12 || 12;
+        return (
+          M[d.getMonth()] +
+          " " +
+          d.getDate() +
+          ", " +
+          d.getFullYear() +
+          " · " +
+          h12 +
+          ":" +
+          pad(d.getMinutes()) +
+          " " +
+          ap
+        );
+      }
+
+      // ── Multi-select ──
+      function rEnterSelectMode() {
+        R.selectMode = true;
+        R.selectedIds = new Set();
+        document.getElementById("rDeleteBar").classList.add("active");
+        document.getElementById("btnRSelectMode").style.display = "none";
+        renderDocList();
+        rUpdateCount();
+      }
+      function rExitSelectMode() {
+        R.selectMode = false;
+        R.selectedIds = new Set();
+        document.getElementById("rDeleteBar").classList.remove("active");
+        document.getElementById("btnRSelectMode").style.display = "";
+        renderDocList();
+      }
+      function rToggleSelect(id) {
+        if (R.selectedIds.has(id)) R.selectedIds.delete(id);
+        else R.selectedIds.add(id);
+        rUpdateCount();
+        renderDocList();
+      }
+      function rUpdateCount() {
+        const n = R.selectedIds.size;
+        const el = document.getElementById("rDeleteCount");
+        if (el) el.textContent = n;
+        const btn = document.getElementById("btnRDeleteConfirm");
+        if (btn) btn.disabled = n === 0;
+      }
+      async function rDeleteSelected() {
+        for (const id of [...R.selectedIds]) {
+          await fetch("/api/research/remove", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: SESSION_ID, doc_id: id }),
+          });
+          delete R.docs[id];
+        }
+        rExitSelectMode();
+        renderDocList();
+        updateResearchBtn();
+      }
+
+      // ── Ctrl+F ──
+      let _ovM = [],
+        _ovI = 0;
+      function initOverviewSearch() {
+        const inp = document.getElementById("ovSearchInput"),
+          cnt = document.getElementById("ovSearchCount"),
+          prv = document.getElementById("ovSearchPrev"),
+          nxt = document.getElementById("ovSearchNext");
+        if (!inp) return;
+        function clear() {
+          document.querySelectorAll(".r-highlight").forEach((el) => {
+            const p = el.parentNode;
+            p.replaceChild(document.createTextNode(el.textContent), el);
+            p.normalize();
+          });
+          _ovM = [];
+          _ovI = 0;
+          cnt.textContent = "";
+          prv.disabled = true;
+          nxt.disabled = true;
+        }
+        function hl(q) {
+          clear();
+          if (!q) return;
+          const lq = q.toLowerCase(),
+            root = document.getElementById("ovWrap");
+          if (!root) return;
+          const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode: (n) =>
+              n.textContent.toLowerCase().includes(lq)
+                ? NodeFilter.FILTER_ACCEPT
+                : NodeFilter.FILTER_REJECT,
+          });
+          const nodes = [];
+          while (walk.nextNode()) nodes.push(walk.currentNode);
+          nodes.forEach((node) => {
+            const t = node.textContent,
+              l = t.toLowerCase();
+            let i = 0,
+              parts = [];
+            while (true) {
+              const f = l.indexOf(lq, i);
+              if (f === -1) {
+                parts.push(document.createTextNode(t.slice(i)));
+                break;
+              }
+              if (f > i) parts.push(document.createTextNode(t.slice(i, f)));
+              const m = document.createElement("mark");
+              m.className = "r-highlight";
+              m.textContent = t.slice(f, f + lq.length);
+              parts.push(m);
+              i = f + lq.length;
+            }
+            const fr = document.createDocumentFragment();
+            parts.forEach((p) => fr.appendChild(p));
+            node.parentNode.replaceChild(fr, node);
+          });
+          _ovM = Array.from(document.querySelectorAll(".r-highlight"));
+          const n = _ovM.length;
+          cnt.textContent = n ? "1 / " + n : "No results";
+          prv.disabled = n < 2;
+          nxt.disabled = n < 2;
+          if (n) goTo(0);
+        }
+        function goTo(i) {
+          _ovM.forEach((m, j) => m.classList.toggle("active", j === i));
+          const m = _ovM[i];
+          if (!m) return;
+          const card = m.closest(".doc-card");
+          if (card && !card.classList.contains("open"))
+            card.classList.add("open");
+          m.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        function goNext() {
+          if (!_ovM.length) return;
+          _ovI = (_ovI + 1) % _ovM.length;
+          cnt.textContent = _ovI + 1 + " / " + _ovM.length;
+          goTo(_ovI);
+        }
+        function goPrev() {
+          if (!_ovM.length) return;
+          _ovI = (_ovI - 1 + _ovM.length) % _ovM.length;
+          cnt.textContent = _ovI + 1 + " / " + _ovM.length;
+          goTo(_ovI);
+        }
+        inp.addEventListener("input", () => hl(inp.value.trim()));
+        inp.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            goNext();
+          }
+          if (e.key === "Escape") {
+            inp.value = "";
+            clear();
+          }
+        });
+        nxt.addEventListener("click", goNext);
+        prv.addEventListener("click", goPrev);
+      }
+      document.addEventListener("keydown", (e) => {
+        const on = document.querySelector(".tab.on");
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.key === "f" &&
+          on?.dataset.t === "overview"
+        ) {
+          const inp = document.getElementById("ovSearchInput");
+          if (inp) {
+            e.preventDefault();
+            inp.focus();
+            inp.select();
+          }
+        }
+      });
+
+      // ── DOMContentLoaded ──
+      document.addEventListener("DOMContentLoaded", () => {
+        rLoad();
+        renderSessions();
+        const btnCS = document.getElementById("btnClearSessions");
+        if (btnCS) btnCS.addEventListener("click", clearSessions);
+        const rBNF = document.getElementById("rBtnNewFolder");
+        if (rBNF) rBNF.addEventListener("click", rCreateFolder);
+        const rNA = document.getElementById("rNotesAddBtn");
+        if (rNA)
+          rNA.addEventListener("click", () => {
+            document.getElementById("rNoteCompose").classList.add("open");
+            document.getElementById("rNoteTextarea").focus();
+          });
+        const rNC = document.getElementById("rNoteCancelBtn");
+        if (rNC)
+          rNC.addEventListener("click", () => {
+            document.getElementById("rNoteCompose").classList.remove("open");
+            document.getElementById("rNoteTextarea").value = "";
+          });
+        const rNS = document.getElementById("rNoteSaveBtn");
+        if (rNS) rNS.addEventListener("click", rSaveNote);
+        const rNCl = document.getElementById("rNotesClearBtn");
+        if (rNCl)
+          rNCl.addEventListener("click", () => {
+            if (confirm("Delete all notes for this session?")) rClearNotes();
+          });
+        const rNTA = document.getElementById("rNoteTextarea");
+        if (rNTA)
+          rNTA.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) rSaveNote();
+          });
+        const tBtn = document.getElementById("themeToggle");
+        if (tBtn) {
+          function upd() {
+            tBtn.textContent = document.documentElement.classList.contains(
+              "light",
+            )
+              ? "🌙"
+              : "☀️";
+          }
+          upd();
+          tBtn.addEventListener("click", () => {
+            document.documentElement.classList.toggle("light");
+            localStorage.setItem(
+              "rai_theme",
+              document.documentElement.classList.contains("light")
+                ? "light"
+                : "dark",
+            );
+            upd();
+          });
+        }
+        const bSel = document.getElementById("btnRSelectMode"),
+          bCan = document.getElementById("btnRDeleteCancel"),
+          bDel = document.getElementById("btnRDeleteConfirm");
+        if (bSel) bSel.addEventListener("click", rEnterSelectMode);
+        if (bCan) bCan.addEventListener("click", rExitSelectMode);
+        if (bDel) bDel.addEventListener("click", rDeleteSelected);
+      });
+
+      // ── Doc selection for research ──
+      function rToggleDocForResearch(id) {
+        if (R.docsForResearch.has(id)) R.docsForResearch.delete(id);
+        else R.docsForResearch.add(id);
+        renderDocList();
+        updateResearchBtn();
+      }
+
+      // ── Sessions panel ──
+      function renderSessions() {
+        const el = document.getElementById("sessionsList");
+        if (!el) return;
+        if (!R.sessions.length) {
+          el.innerHTML =
+            '<div class="session-empty">No sessions yet.<br>Run a research query<br>to see history here.</div>';
+          return;
+        }
+        el.innerHTML = R.sessions
+          .map((s, i) => {
+            const docCount = s.docNames ? s.docNames.length : 0;
+            const docLabel =
+              docCount > 0
+                ? `${docCount} doc${docCount !== 1 ? "s" : ""}`
+                : "🌐 web only";
+            return `<div class="session-item${R.result && R.currentSessionId === s.id ? " active" : ""}" onclick="loadSession(${i})">
+      <button class="session-del" onclick="event.stopPropagation();deleteSession(${i})" title="Delete session">✕</button>
+      <div class="session-q" style="padding-right:18px;">${esc(s.query)}</div>
+      <div class="session-meta">
+        <div class="session-dot"></div>
+        <span>${docLabel}</span>
+        <span>·</span>
+        <span>${fmtTime(s.timestamp)}</span>
+      </div>
+    </div>`;
+          })
+          .join("");
+      }
+
+      function loadSession(idx) {
+        const s = R.sessions[idx];
+        if (!s) return;
+        R.result = s.result;
+        R.chatHistory = [];
+        R.currentSessionId = s.id;
+        const ew = document.getElementById("rExportWrap");
+        if (ew) ew.style.display = s.result ? "block" : "none";
+        renderSessions();
+        switchTab("overview");
+        renderOverview();
+        toast(
+          "📂 Loaded: " +
+            s.query.slice(0, 40) +
+            (s.query.length > 40 ? "…" : ""),
+        );
+      }
+
+      function deleteSession(idx) {
+        const s = R.sessions[idx];
+        if (!s) return;
+        R.sessions.splice(idx, 1);
+        // If we deleted the active session, clear the view
+        if (R.currentSessionId === s.id) {
+          R.result = null;
+          R.currentSessionId = null;
+          R.chatHistory = [];
+          showWelcome();
+        }
+        renderSessions();
+        rSave();
+      }
+
+      function clearSessions() {
+        if (!R.sessions.length) return;
+        R.sessions = [];
+        R.currentSessionId = null;
+        R.result = null;
+        R.chatHistory = [];
+        renderSessions();
+        showWelcome();
+        rSave();
+        toast("Sessions cleared");
+      }
+
+      // ── R Folder system ──
+      let _rDragDocId = null;
+      function rDragDoc(e, id) {
+        _rDragDocId = id;
+        e.dataTransfer.effectAllowed = "move";
+      }
+      function rDropToFolder(e, fid) {
+        e.preventDefault();
+        e.currentTarget.classList.remove("drag-over");
+        if (!_rDragDocId) return;
+        Object.values(R.folders).forEach((f) => {
+          f.docIds = f.docIds.filter((id) => id !== _rDragDocId);
+        });
+        R.folders[fid].docIds.push(_rDragDocId);
+        _rDragDocId = null;
+        rSave();
+        renderDocList();
+      }
+      function rToggleFolder(fid) {
+        if (!R.folders[fid]) return;
+        R.folders[fid].open = R.folders[fid].open === false ? true : false;
+        renderDocList();
+      }
+      function rShowFolderModal(title, defaultName, onConfirm) {
+        const overlay = document.createElement("div");
+        overlay.className = "folder-modal-overlay";
+        overlay.innerHTML = `<div class="folder-modal"><h3>${title}</h3><input id="rFolderNameInput" type="text" placeholder="Folder name (required)" value="${esc(defaultName)}" maxlength="40"><div id="rFolderNameErr" style="font-size:12px;color:var(--red);margin:-4px 0 8px;display:none;"></div><div class="folder-modal-btns"><button class="btn" id="rFolderCancel">Cancel</button><button class="btn primary" id="rFolderConfirm">Confirm</button></div></div>`;
+        document.body.appendChild(overlay);
+        const inp = overlay.querySelector("#rFolderNameInput");
+        inp.focus();
+        inp.select();
+        overlay.querySelector("#rFolderCancel").onclick = () =>
+          overlay.remove();
+        const rErrEl = overlay.querySelector("#rFolderNameErr");
+        overlay.querySelector("#rFolderConfirm").onclick = () => {
+          const name = inp.value.trim();
+          if (!name) {
+            inp.classList.add("error");
+            rErrEl.textContent = "Folder name is required.";
+            rErrEl.style.display = "block";
+            inp.focus();
+            return;
+          }
+          const isDupe = Object.values(R.folders).some(
+            (f) => f.name === name && f.name !== defaultName,
+          );
+          if (isDupe) {
+            inp.classList.add("error");
+            rErrEl.textContent =
+              "A folder with this exact name already exists.";
+            rErrEl.style.display = "block";
+            inp.focus();
+            return;
+          }
+          overlay.remove();
+          onConfirm(name);
+        };
+        inp.addEventListener("input", () => {
+          inp.classList.remove("error");
+          if (rErrEl) rErrEl.style.display = "none";
+        });
+        inp.addEventListener("keydown", (e) => {
+          if (e.key === "Enter")
+            overlay.querySelector("#rFolderConfirm").click();
+          if (e.key === "Escape") overlay.remove();
+        });
+      }
+      function rCreateFolder() {
+        rShowFolderModal("New Folder", "", (name) => {
+          const fid = "rf_" + Date.now();
+          R.folders[fid] = { name, docIds: [], open: true };
+          rSave();
+          renderDocList();
+          toast('📁 Folder "' + name + '" created');
+        });
+      }
+      function rRenameFolder(fid) {
+        if (!R.folders[fid]) return;
+        rShowFolderModal("Rename Folder", R.folders[fid].name, (name) => {
+          R.folders[fid].name = name;
+          rSave();
+          renderDocList();
+        });
+      }
+      function rDeleteFolder(fid) {
+        if (!R.folders[fid]) return;
+        delete R.folders[fid];
+        rSave();
+        renderDocList();
+        toast("Folder deleted — documents kept");
+      }
+
+      // ── Notes (ResearchAI) ──
+      function rShowNotesPanel(show) {
+        const panel = document.getElementById("rNotesPanel");
+        const app = document.querySelector(".app");
+        if (!panel) return;
+        if (show && R.currentSessionId) {
+          panel.style.display = "flex";
+          rRenderNotes();
+        } else {
+          panel.style.display = "none";
+        }
+      }
+
+      function rGetNotes() {
+        if (!R.currentSessionId) return [];
+        return R.notes[R.currentSessionId] || [];
+      }
+
+      function rRenderNotes() {
+        const list = document.getElementById("rNotesList");
+        if (!list) return;
+        const notes = rGetNotes();
+        if (!notes.length) {
+          list.innerHTML =
+            '<div class="notes-empty">No notes for this session.<br>Click <strong style="color:var(--accent)">+ Note</strong> to add one.</div>';
+          return;
+        }
+        list.innerHTML = notes
+          .map(
+            (n, i) => `
+    <div class="note-card" onclick="rViewNote(${i})">
+      <div class="note-card-text">${esc(n.text)}</div>
+      <div class="note-card-meta">
+        <span>${fmtTime(new Date(n.createdAt))}</span>
+        <button class="note-del-btn" onclick="event.stopPropagation();rDeleteNote(${i})" title="Delete">✕</button>
+      </div>
+    </div>`,
+          )
+          .join("");
+      }
+
+      function rViewNote(idx) {
+        const notes = rGetNotes();
+        const n = notes[idx];
+        if (!n) return;
+        const panel = document.getElementById("rNotesPanel");
+        const existing = panel.querySelector(".note-viewer");
+        if (existing) existing.remove();
+        const viewer = document.createElement("div");
+        viewer.className = "note-viewer";
+        viewer.innerHTML = `
+    <div class="note-viewer-text">${esc(n.text)}</div>
+    <div class="note-viewer-meta">
+      <span>${fmtTime(new Date(n.createdAt))}</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn" style="font-size:11px;padding:3px 9px;color:var(--red);border-color:rgba(208,96,96,.3);" onclick="rDeleteNote(${idx});this.closest('.note-viewer').remove()">Delete</button>
+        <button class="btn" style="font-size:11px;padding:3px 9px;" onclick="this.closest('.note-viewer').remove()">Close</button>
+      </div>
+    </div>`;
+        panel.style.position = "relative";
+        panel.appendChild(viewer);
+      }
+
+      function rDeleteNote(idx) {
+        if (!R.currentSessionId) return;
+        const sid = R.currentSessionId;
+        if (!R.notes[sid]) return;
+        R.notes[sid].splice(idx, 1);
+        if (!R.notes[sid].length) delete R.notes[sid];
+        rSave();
+        rRenderNotes();
+      }
+
+      function rClearNotes() {
+        if (!R.currentSessionId) return;
+        delete R.notes[R.currentSessionId];
+        rSave();
+        rRenderNotes();
+      }
+
+      function rSaveNote() {
+        const ta = document.getElementById("rNoteTextarea");
+        const text = ta.value.trim();
+        if (!text || !R.currentSessionId) return;
+        const sid = R.currentSessionId;
+        if (!R.notes[sid]) R.notes[sid] = [];
+        R.notes[sid].unshift({ id: Date.now(), text, createdAt: Date.now() });
+        ta.value = "";
+        document.getElementById("rNoteCompose").classList.remove("open");
+        rSave();
+        rRenderNotes();
+      }
+
+      function esc(s) {
+        return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+      function toast(msg, err = false) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.style.borderColor = err ? "rgba(208,96,96,.3)" : "var(--border2)";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3500);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/static/MindForge_Logo.png" />
+    <title>MindForge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0a0a0c;
+        --gold: #c8a96e;
+        --gold2: #e8c98a;
+        --gold-dim: rgba(200, 169, 110, 0.12);
+        --text: #f0ede8;
+        --text2: #9b9894;
+        --text3: #4a4846;
+        --serif: "Cormorant Garamond", Georgia, serif;
+        --sans: "DM Sans", system-ui, sans-serif;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+      }
+
+      /* ── Noise grain overlay ── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 100;
+        opacity: 0.6;
+      }
+
+      /* ── Ambient light orbs ── */
+      .orb {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(120px);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .orb-1 {
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(
+          circle,
+          rgba(200, 169, 110, 0.07) 0%,
+          transparent 70%
+        );
+        top: -100px;
+        left: -100px;
+        animation: drift1 20s ease-in-out infinite;
+      }
+      .orb-2 {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(
+          circle,
+          rgba(200, 169, 110, 0.05) 0%,
+          transparent 70%
+        );
+        bottom: -50px;
+        right: -50px;
+        animation: drift2 25s ease-in-out infinite;
+      }
+      @keyframes drift1 {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        50% {
+          transform: translate(60px, 40px);
+        }
+      }
+      @keyframes drift2 {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        50% {
+          transform: translate(-40px, -60px);
+        }
+      }
+
+      /* ── Layout ── */
+      .stage {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr 1px 1fr;
+        z-index: 1;
+      }
+
+      /* ── Divider ── */
+      .divider {
+        width: 1px;
+        background: linear-gradient(
+          to bottom,
+          transparent 0%,
+          rgba(200, 169, 110, 0.15) 20%,
+          rgba(200, 169, 110, 0.4) 50%,
+          rgba(200, 169, 110, 0.15) 80%,
+          transparent 100%
+        );
+        position: relative;
+        z-index: 10;
+        transition: opacity 0.4s;
+      }
+
+      /* Hide divider when a side is hovered */
+      .stage:has(.panel-left:hover) .divider,
+      .stage:has(.panel-right:hover) .divider {
+        opacity: 0;
+      }
+
+      /* ── Panels ── */
+      .panel {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        overflow: hidden;
+        text-decoration: none;
+        transition: flex 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+      }
+
+      .panel-left::before {
+        background: radial-gradient(
+          ellipse at 30% 50%,
+          rgba(200, 169, 110, 0.08) 0%,
+          transparent 70%
+        );
+      }
+      .panel-right::before {
+        background: radial-gradient(
+          ellipse at 70% 50%,
+          rgba(200, 169, 110, 0.08) 0%,
+          transparent 70%
+        );
+      }
+
+      .panel:hover::before {
+        opacity: 1;
+      }
+
+      /* Expand the hovered panel */
+      .stage:has(.panel-left:hover) {
+        grid-template-columns: 1.45fr 0px 0.55fr;
+      }
+      .stage:has(.panel-right:hover) {
+        grid-template-columns: 0.55fr 0px 1.45fr;
+      }
+      .stage {
+        transition: grid-template-columns 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* ── Panel content ── */
+      .panel-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1.5rem;
+        padding: 3rem;
+        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .panel-left .panel-inner {
+        transform: translateX(20px);
+      }
+      .panel-right .panel-inner {
+        transform: translateX(-20px);
+      }
+      .panel-left:hover .panel-inner {
+        transform: translateX(0);
+      }
+      .panel-right:hover .panel-inner {
+        transform: translateX(0);
+      }
+
+      /* ── Badge / label ── */
+      .badge {
+        font-family: var(--sans);
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--gold);
+        border: 1px solid rgba(200, 169, 110, 0.3);
+        padding: 5px 14px;
+        border-radius: 20px;
+        background: rgba(200, 169, 110, 0.06);
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+          opacity 0.4s 0.1s,
+          transform 0.4s 0.1s;
+      }
+      .panel:hover .badge {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ── Main title ── */
+      .panel-title {
+        font-family: var(--serif);
+        font-size: clamp(3.5rem, 7vw, 6rem);
+        font-weight: 300;
+        line-height: 1;
+        color: var(--text);
+        letter-spacing: -0.02em;
+        transition: color 0.3s;
+      }
+      .panel-title em {
+        font-style: italic;
+        color: var(--gold);
+      }
+      .panel:hover .panel-title {
+        color: var(--text);
+      }
+
+      /* ── Description ── */
+      .panel-desc {
+        font-size: 14px;
+        font-weight: 300;
+        color: var(--text2);
+        max-width: 280px;
+        line-height: 1.8;
+        opacity: 0;
+        transform: translateY(10px);
+        transition:
+          opacity 0.4s 0.15s,
+          transform 0.4s 0.15s;
+      }
+      .panel:hover .panel-desc {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ── Feature list ── */
+      .panel-features {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        opacity: 0;
+        transform: translateY(12px);
+        transition:
+          opacity 0.4s 0.2s,
+          transform 0.4s 0.2s;
+      }
+      .panel:hover .panel-features {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .feature {
+        font-size: 12px;
+        color: var(--text3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: 0.02em;
+      }
+      .feature::before {
+        content: "";
+        width: 16px;
+        height: 1px;
+        background: var(--gold);
+        flex-shrink: 0;
+      }
+
+      /* ── Enter arrow ── */
+      .panel-enter {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--gold);
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+          opacity 0.4s 0.25s,
+          transform 0.4s 0.25s;
+        margin-top: 0.5rem;
+      }
+      .panel:hover .panel-enter {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .enter-line {
+        width: 32px;
+        height: 1px;
+        background: var(--gold);
+        transform-origin: left;
+        transition: width 0.3s ease;
+      }
+      .panel:hover .enter-line {
+        width: 48px;
+      }
+
+      /* ── Icon ── */
+      .panel-icon {
+        font-size: 2.5rem;
+        line-height: 1;
+        filter: grayscale(0.3);
+        transition:
+          transform 0.4s,
+          filter 0.4s;
+        width: 220px;
+        height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+      }
+      .panel:hover .panel-icon {
+        transform: scale(1.1);
+        filter: grayscale(0);
+      }
+
+      /* ── Coming soon tag ── */
+      .coming-soon {
+        font-family: var(--sans);
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--text3);
+        border: 1px solid var(--text3);
+        padding: 3px 10px;
+        border-radius: 20px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+          opacity 0.4s 0.3s,
+          transform 0.4s 0.3s;
+      }
+      .panel:hover .coming-soon {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ── Header ── */
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 1.5rem 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 50;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      .header-brand {
+        font-family: var(--serif);
+        font-size: 1.65rem;
+        font-weight: 400;
+        letter-spacing: 0.06em;
+        color: var(--text);
+        opacity: 0;
+        animation: fadeUp 1s ease 0.3s forwards;
+        padding-left: 3.34rem;
+        white-space: nowrap;
+      }
+      .header-brand em {
+        color: var(--gold);
+        font-style: italic;
+      }
+      .header-hint {
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text3);
+        opacity: 0;
+        animation: fadeUp 1s ease 0.5s forwards;
+      }
+
+      /* ── Bottom label ── */
+      .bottom-label {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--text3);
+        z-index: 50;
+        pointer-events: none;
+        opacity: 0;
+        animation: fadeUp 1s ease 0.7s forwards;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .bottom-label::before,
+      .bottom-label::after {
+        content: "";
+        width: 24px;
+        height: 1px;
+        background: var(--text3);
+      }
+
+      /* ── Entrance animations ── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(12px) translateX(-50%);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) translateX(-50%);
+        }
+      }
+      @keyframes fadeUpSimple {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .panel-inner {
+        opacity: 0;
+        animation: fadeUpSimple 0.9s ease forwards;
+      }
+      .panel-left .panel-inner {
+        animation-delay: 0.2s;
+      }
+      .panel-right .panel-inner {
+        animation-delay: 0.35s;
+      }
+
+      /* Horizontal rule across center */
+      .h-rule {
+        position: fixed;
+        top: 50%;
+        left: 8%;
+        right: 8%;
+        height: 1px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          rgba(200, 169, 110, 0.08) 20%,
+          rgba(200, 169, 110, 0.08) 80%,
+          transparent
+        );
+        pointer-events: none;
+        z-index: 0;
+        transform: translateY(-50%);
+      }
+
+      /* ── Keyboard hint fade ── */
+      .key-hint {
+        position: fixed;
+        bottom: 2rem;
+        right: 2.5rem;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text3);
+        z-index: 50;
+        pointer-events: none;
+        opacity: 0;
+        animation: fadeUpSimple 1s ease 0.9s forwards;
+      }
+
+      /* ── Cursor dot ── */
+      .cursor {
+        position: fixed;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--gold);
+        pointer-events: none;
+        z-index: 200;
+        transform: translate(-50%, -50%);
+        transition:
+          transform 0.05s,
+          width 0.3s,
+          height 0.3s,
+          opacity 0.3s;
+        mix-blend-mode: screen;
+      }
+      .cursor-ring {
+        position: fixed;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid rgba(200, 169, 110, 0.4);
+        pointer-events: none;
+        z-index: 199;
+        transform: translate(-50%, -50%);
+        transition:
+          transform 0.15s ease,
+          width 0.3s,
+          height 0.3s,
+          opacity 0.3s,
+          border-color 0.3s;
+      }
+
+      /* Panel inactive glow line at top */
+      .panel::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 15%;
+        right: 15%;
+        height: 1px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          rgba(200, 169, 110, 0.2),
+          transparent
+        );
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      .panel:hover::after {
+        opacity: 1;
+      }
+
+      /* Overlay when other side is hovered */
+      .panel {
+        transition:
+          opacity 0.5s ease,
+          flex 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .stage:has(.panel-left:hover) .panel-right {
+        opacity: 0.4;
+      }
+      .stage:has(.panel-right:hover) .panel-left {
+        opacity: 0.4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="h-rule"></div>
+
+    <header>
+      <div class="header-brand">Mind<em>Forge</em></div>
+      <div class="header-hint">Choose your tool</div>
+    </header>
+
+    <div class="stage">
+      <!-- StudyAI -->
+      <a class="panel panel-left" href="/study">
+        <div class="panel-inner">
+          <div class="badge">Document Intelligence</div>
+          <div class="panel-icon">
+            <img
+              src="/static/StudyAI_NoLogo.png"
+              alt="StudyAI"
+              style="
+                width: 95%;
+                height: 95%;
+                object-fit: cover;
+                border-radius: 50%;
+              "
+            />
+          </div>
+          <div class="panel-title">Study<em>AI</em></div>
+          <p class="panel-desc">
+            Upload any document and get a detailed page-by-page breakdown —
+            summaries, glossary, flashcards, and AI chat. Runs 100% locally.
+          </p>
+          <div class="panel-features">
+            <div class="feature">Page-by-page AI summaries</div>
+            <div class="feature">Auto-generated glossary</div>
+            <div class="feature">Flashcard study mode</div>
+            <div class="feature">Ask AI anything about the doc</div>
+          </div>
+          <div class="panel-enter">
+            <div class="enter-line"></div>
+            Open StudyAI
+            <div class="enter-line" style="transform-origin: right"></div>
+          </div>
+        </div>
+      </a>
+
+      <div class="divider"></div>
+
+      <!-- ResearchAI -->
+      <a class="panel panel-right" href="/research">
+        <div class="panel-inner">
+          <div class="badge">Research Engine</div>
+          <div class="panel-icon">
+            <img
+              src="/static/ResearchAI_NoLogo.png"
+              alt="ResearchAI"
+              style="
+                width: 95%;
+                height: 95%;
+                object-fit: cover;
+                border-radius: 50%;
+              "
+            />
+          </div>
+          <div class="panel-title">Research<em>AI</em></div>
+          <p class="panel-desc">
+            Deep research mode — synthesize sources, build literature reviews,
+            trace citations, and generate structured reports across multiple
+            documents.
+          </p>
+          <div class="panel-features">
+            <div class="feature">Multi-document synthesis</div>
+            <div class="feature">Citation tracing</div>
+            <div class="feature">Structured report generation</div>
+            <div class="feature">Cross-document analysis</div>
+          </div>
+          <div class="panel-enter">
+            <div class="enter-line"></div>
+            Open ResearchAI
+            <div class="enter-line" style="transform-origin: right"></div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="bottom-label">MindForge</div>
+    <div class="key-hint">Hover to explore</div>
+
+    <script>
+      // Custom cursor
+      const cursor = document.getElementById("cursor");
+      const ring = document.getElementById("cursorRing");
+      let mx = 0,
+        my = 0,
+        rx = 0,
+        ry = 0;
+
+      document.addEventListener("mousemove", (e) => {
+        mx = e.clientX;
+        my = e.clientY;
+        cursor.style.left = mx + "px";
+        cursor.style.top = my + "px";
+      });
+
+      function animateRing() {
+        rx += (mx - rx) * 0.12;
+        ry += (my - ry) * 0.12;
+        ring.style.left = rx + "px";
+        ring.style.top = ry + "px";
+        requestAnimationFrame(animateRing);
+      }
+      animateRing();
+
+      // Grow ring on panel hover
+      document.querySelectorAll(".panel").forEach((p) => {
+        p.addEventListener("mouseenter", () => {
+          ring.style.width = "56px";
+          ring.style.height = "56px";
+          ring.style.borderColor = "rgba(200,169,110,0.7)";
+        });
+        p.addEventListener("mouseleave", () => {
+          ring.style.width = "32px";
+          ring.style.height = "32px";
+          ring.style.borderColor = "rgba(200,169,110,0.4)";
+        });
+      });
+
+      // ResearchAI navigation enabled
+    </script>
+  </body>
+</html>
