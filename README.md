@@ -4,6 +4,13 @@ An AI-powered study and research assistant built with Python (Flask) and the Ant
 Upload any document and get a detailed, section-by-section breakdown with key points,
 summaries, themes, and an interactive Q&A chat.
 
+---
+
+## Demo
+[![MindForge Demo](static/MindForge_Logo.png)](https://youtu.be/TWpiLtolqIg)
+
+---
+
 ## Supported formats
 - **PDF** — parsed page by page
 - **DOCX** — Word documents
@@ -66,18 +73,3 @@ Double-clicking it will:
 
 ---
 
-## Project structure
-```
-MindForge/
-├── MindForge.bat           ← Windows launcher (starts Ollama + Flask + browser)
-└── study_assistant/
-    ├── app.py              ← Flask backend + document parsers + Anthropic API calls
-    ├── requirements.txt    ← Python dependencies
-    ├── static/
-    │   └── MindForge_Logo.png
-    ├── templates/
-    │   ├── home.html       ← Landing page
-    │   ├── index.html      ← Study assistant UI
-    │   └── research.html   ← Research assistant UI
-    └── README.md
-```
